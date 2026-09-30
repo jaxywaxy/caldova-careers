@@ -33,3 +33,4 @@ pnpm-debug.log*
 # editors
 .idea/
 *.swp
+.copilot-tracking/
