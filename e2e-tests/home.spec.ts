@@ -16,6 +16,49 @@ test.describe('Open roles listing', () => {
         const grid = page.getByTestId('roles-grid');
         await expect(grid).toBeVisible();
         await expect(page.getByTestId('role-card')).toHaveCount(expectedRoleCount);
+
+        const roleCards = await page.getByTestId('role-card').all();
+        const roleTitles = await Promise.all(
+            roleCards.map((card) => card.getByRole('heading', { level: 3 }).innerText()),
+        );
+        const matchingTitle = roleTitles[0].trim();
+        const searchInput = page.getByRole('searchbox', { name: 'Search roles by title' });
+
+        await test.step('filters to matching role titles', async () => {
+            await searchInput.fill(matchingTitle);
+
+            for (const [index, card] of roleCards.entries()) {
+                const matchesQuery = roleTitles[index]
+                    .toLowerCase()
+                    .includes(matchingTitle.toLowerCase());
+
+                if (matchesQuery) {
+                    await expect(card).toBeVisible();
+                } else {
+                    await expect(card).toBeHidden();
+                }
+            }
+        });
+
+        await test.step('announces when no roles match', async () => {
+            await searchInput.fill('no matching role title');
+            await expect(page.getByRole('status')).toHaveText(
+                'No roles match your search. Try a different title.',
+            );
+
+            for (const card of roleCards) {
+                await expect(card).toBeHidden();
+            }
+        });
+
+        await test.step('restores all roles when the query is cleared', async () => {
+            await searchInput.fill('');
+            await expect(page.getByRole('status')).toBeHidden();
+
+            for (const card of roleCards) {
+                await expect(card).toBeVisible();
+            }
+        });
     });
 
     test('links through to a role detail page', async ({ page }) => {
