@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sortByNewest, formatPostedDate } from './jobs';
+import { filterJobsByTitle, sortByNewest, formatPostedDate } from './jobs';
 import type { Job } from '../types/job';
 
 function makeJob(slug: string, postedDate: string): Job {
@@ -14,6 +14,46 @@ function makeJob(slug: string, postedDate: string): Job {
         summary: 'A role.',
     };
 }
+
+describe('filterJobsByTitle', () => {
+    const jobs = [
+        { slug: 'platform', title: 'Data Platform Engineer' },
+        { slug: 'analyst', title: 'Financial Analyst' },
+        { slug: 'frontend', title: 'Senior Frontend Engineer' },
+    ];
+
+    it('matches title substrings without regard to case', () => {
+        expect(filterJobsByTitle(jobs, 'engineer').map((job) => job.slug)).toEqual([
+            'platform',
+            'frontend',
+        ]);
+    });
+
+    it('trims whitespace from the query', () => {
+        expect(filterJobsByTitle(jobs, '  FINANCIAL  ').map((job) => job.slug)).toEqual([
+            'analyst',
+        ]);
+    });
+
+    it('returns every job for empty and whitespace-only queries', () => {
+        expect(filterJobsByTitle(jobs, '')).toEqual(jobs);
+        expect(filterJobsByTitle(jobs, '   ')).toEqual(jobs);
+    });
+
+    it('returns no jobs when no title matches', () => {
+        expect(filterJobsByTitle(jobs, 'scientist')).toEqual([]);
+    });
+
+    it('preserves matching jobs in their original order without mutating input', () => {
+        const originalJobs = structuredClone(jobs);
+
+        expect(filterJobsByTitle(jobs, 'engineer')).toEqual([
+            { slug: 'platform', title: 'Data Platform Engineer' },
+            { slug: 'frontend', title: 'Senior Frontend Engineer' },
+        ]);
+        expect(jobs).toEqual(originalJobs);
+    });
+});
 
 describe('sortByNewest', () => {
     it('orders jobs by posted date, newest first', () => {

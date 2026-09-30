@@ -29,12 +29,76 @@ const jobs: Job[] = sortByNewest(
     {jobs.length === 0 ? (
       <EmptyState text="There are no open roles right now. Check back soon." />
     ) : (
-      <div
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        data-testid="roles-grid"
-      >
-        {jobs.map((job) => <RoleCard job={job} />)}
+      <div>
+        <div class="mb-6" data-testid="role-search-control" hidden>
+          <label for="role-search" class="block text-sm font-medium text-slate-200 mb-2">
+            Search roles by title
+          </label>
+          <input
+            id="role-search"
+            type="search"
+            data-testid="role-search"
+            placeholder="Search by title"
+            class="w-full max-w-md rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-slate-100 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          />
+        </div>
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          data-testid="roles-grid"
+        >
+          {jobs.map((job) => <RoleCard job={job} />)}
+        </div>
+        <p
+          class="mt-6 text-slate-300"
+          data-testid="role-search-no-results"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          No roles match your search. Try a different title.
+        </p>
       </div>
     )}
   </div>
 </Layout>
+
+<script>
+  import { filterJobsByTitle } from '../lib/jobs';
+
+  const searchControl = document.querySelector<HTMLElement>(
+    '[data-testid="role-search-control"]',
+  );
+  const searchInput = document.querySelector<HTMLInputElement>(
+    '[data-testid="role-search"]',
+  );
+  const roleCards = Array.from(
+    document.querySelectorAll<HTMLAnchorElement>('[data-testid="role-card"]'),
+  );
+  const noResultsMessage = document.querySelector<HTMLElement>(
+    '[data-testid="role-search-no-results"]',
+  );
+
+  if (searchControl && searchInput && roleCards.length > 0 && noResultsMessage) {
+    const searchableJobs = roleCards.flatMap((card) => {
+      const slug = card.dataset.jobId;
+      const title = card.querySelector('[data-testid="role-title"]')?.textContent?.trim();
+
+      return slug && title ? [{ slug, title }] : [];
+    });
+
+    const updateRoleVisibility = () => {
+      const matchingSlugs = new Set(
+        filterJobsByTitle(searchableJobs, searchInput.value).map((job) => job.slug),
+      );
+
+      roleCards.forEach((card) => {
+        card.hidden = !matchingSlugs.has(card.dataset.jobId ?? '');
+      });
+      noResultsMessage.hidden = searchInput.value.trim().length === 0 || matchingSlugs.size > 0;
+    };
+
+    searchInput.addEventListener('input', updateRoleVisibility);
+    updateRoleVisibility();
+    searchControl.hidden = false;
+  }
+</script>

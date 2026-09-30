@@ -7,6 +7,19 @@
  */
 import type { Job } from '../types/job';
 
+/** Filter searchable job records by a case-insensitive title substring. */
+export function filterJobsByTitle(
+    jobs: Pick<Job, 'slug' | 'title'>[],
+    query: string,
+): Pick<Job, 'slug' | 'title'>[] {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) {
+        return jobs;
+    }
+
+    return jobs.filter((job) => job.title.toLowerCase().includes(normalizedQuery));
+}
+
 /** Return jobs sorted by posted date, newest first (does not mutate input). */
 export function sortByNewest(jobs: Job[]): Job[] {
     return [...jobs].sort(
