@@ -55,6 +55,12 @@ describe('applicationSchema', () => {
         ).toBe(false);
     });
 
+    it('rejects whitespace-only required fields', () => {
+        expect(applicationSchema.safeParse({ ...base, jobId: '   ' }).success).toBe(false);
+        expect(applicationSchema.safeParse({ ...base, name: '   ' }).success).toBe(false);
+        expect(applicationSchema.safeParse({ ...base, email: '   ' }).success).toBe(false);
+    });
+
     it('rejects an overly long note', () => {
         const result = applicationSchema.safeParse({
             ...base,

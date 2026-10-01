@@ -1,0 +1,247 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import EmptyState from '../components/EmptyState.astro';
+import {
+    formatPostedDate,
+    getDashboardSummary,
+    sortByNewest,
+    summarizeDepartments,
+} from '../lib/jobs';
+import type { Job } from '../types/job';
+
+const entries = await getCollection('jobs');
+const jobs: Job[] = sortByNewest(
+    entries.map((entry) => ({ slug: entry.id, ...entry.data })),
+);
+const summary = getDashboardSummary(jobs);
+const departmentSummary = summarizeDepartments(jobs);
+const departmentOptions = ['all', ...new Set(jobs.map((job) => job.department))];
+---
+
+<Layout title="Caldova Careers — Dashboard">
+  <div class="py-8">
+    <section class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div>
+        <p class="text-sm font-medium uppercase tracking-[0.2em] text-blue-300">
+          Hiring dashboard
+        </p>
+        <h1 class="mt-2 text-3xl font-bold text-slate-100">
+          Recruiting overview
+        </h1>
+      </div>
+      <a
+        href="/"
+        class="inline-flex items-center justify-center rounded-md border border-blue-500/60 bg-blue-600/10 px-4 py-2 text-sm font-medium text-blue-200 transition hover:border-blue-400 hover:bg-blue-600/20"
+      >
+        Open roles →
+      </a>
+    </section>
+
+    <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <article class="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 shadow-lg">
+        <p class="text-sm text-slate-400">Active roles</p>
+        <p class="mt-3 text-3xl font-bold text-slate-100">{summary.totalRoles}</p>
+      </article>
+      <article class="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 shadow-lg">
+        <p class="text-sm text-slate-400">Departments</p>
+        <p class="mt-3 text-3xl font-bold text-slate-100">{summary.departments}</p>
+      </article>
+      <article class="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 shadow-lg">
+        <p class="text-sm text-slate-400">Remote roles</p>
+        <p class="mt-3 text-3xl font-bold text-slate-100">{summary.remoteRoles}</p>
+      </article>
+      <article class="rounded-2xl border border-slate-700 bg-slate-800/80 p-5 shadow-lg">
+        <p class="text-sm text-slate-400">Locations</p>
+        <p class="mt-3 text-3xl font-bold text-slate-100">{summary.locations}</p>
+      </article>
+    </section>
+
+    <section class="mt-8 rounded-2xl border border-slate-700 bg-slate-800/60 p-4 shadow-lg">
+      <div class="grid gap-4 md:grid-cols-3">
+        <label class="block text-sm text-slate-200">
+          <span class="mb-2 block font-medium">Search roles</span>
+          <input
+            type="search"
+            data-testid="dashboard-search"
+            placeholder="Search by role, team, or location"
+            class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          <span class="mb-2 block font-medium">Department</span>
+          <select
+            data-testid="dashboard-department-filter"
+            class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          >
+            {departmentOptions.map((department) => (
+              <option value={department}>
+                {department === 'all' ? 'All departments' : department}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          <span class="mb-2 block font-medium">Sort by</span>
+          <select
+            data-testid="dashboard-sort"
+            class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          >
+            <option value="newest">Newest</option>
+            <option value="title">Title</option>
+            <option value="department">Department</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <div class="mt-8 grid gap-8 xl:grid-cols-[1.7fr_0.9fr]">
+      <div data-testid="dashboard-role-list" class="space-y-4">
+        {jobs.length === 0 ? (
+          <div data-testid="dashboard-empty">
+            <EmptyState text="There are no roles available to display in the dashboard." />
+          </div>
+        ) : (
+          <>
+            {jobs.map((job) => (
+              <article
+                class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5 shadow-lg"
+                data-testid="dashboard-role"
+                data-role-title={job.title}
+                data-role-department={job.department}
+                data-role-location={job.location}
+                data-role-posted={job.postedDate}
+              >
+              <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p class="text-sm font-medium uppercase tracking-[0.16em] text-blue-300">
+                    {job.department}
+                  </p>
+                  <h2 class="mt-2 text-xl font-semibold text-slate-100">{job.title}</h2>
+                  <p class="mt-2 text-sm text-slate-400">{job.location}</p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                  <span class="rounded-full border border-blue-500/40 bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-200">
+                    {job.type}
+                  </span>
+                  {job.remote && (
+                    <span class="rounded-full border border-slate-600 bg-slate-700 px-2.5 py-1 text-xs font-medium text-slate-200">
+                      Remote
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <p class="mt-4 text-sm leading-6 text-slate-300">{job.summary}</p>
+
+              <div class="mt-4 flex items-center justify-between gap-4 text-sm text-slate-400">
+                <span>Posted {formatPostedDate(job.postedDate)}</span>
+                <a
+                  href={`/roles/${job.slug}`}
+                  class="font-medium text-blue-300 transition hover:text-blue-200"
+                >
+                  View role →
+                </a>
+              </div>
+            </article>
+            ))}
+          </>
+        )}
+        <div data-testid="dashboard-empty" class="hidden">
+          <EmptyState text="No roles match your current filters." />
+        </div>
+      </div>
+
+      <aside class="rounded-2xl border border-slate-700 bg-slate-800/70 p-5 shadow-lg">
+        <h2 class="text-lg font-semibold text-slate-100">Department mix</h2>
+        <ul class="mt-4 space-y-3">
+          {departmentSummary.map((department) => (
+            <li class="rounded-lg border border-slate-700 bg-slate-900/60 p-3">
+              <div class="flex items-center justify-between gap-3">
+                <span class="font-medium text-slate-200">{department.name}</span>
+                <span class="text-sm text-slate-400">{department.count} roles</span>
+              </div>
+              <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-700">
+                <div
+                  class="h-full rounded-full bg-blue-500"
+                  style={`width: ${(department.count / Math.max(summary.totalRoles, 1)) * 100}%`}
+                />
+              </div>
+              <p class="mt-2 text-xs text-slate-400">
+                {department.remoteCount} remote-friendly opportunities
+              </p>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+  </div>
+
+  <script is:inline>
+    const searchInput = document.querySelector('[data-testid="dashboard-search"]');
+    const departmentFilter = document.querySelector('[data-testid="dashboard-department-filter"]');
+    const sortSelect = document.querySelector('[data-testid="dashboard-sort"]');
+    const roleList = document.querySelector('[data-testid="dashboard-role-list"]');
+    const roleItems = Array.from(document.querySelectorAll('[data-testid="dashboard-role"]'));
+    const emptyState = document.querySelector('[data-testid="dashboard-empty"]');
+
+    const applyFilters = () => {
+      const query = (searchInput?.value ?? '').trim().toLowerCase();
+      const department = (departmentFilter?.value ?? 'all').toLowerCase();
+      const sortValue = sortSelect?.value ?? 'newest';
+
+      const filtered = roleItems.filter((item) => {
+        const title = (item.dataset.roleTitle ?? '').toLowerCase();
+        const departmentName = (item.dataset.roleDepartment ?? '').toLowerCase();
+        const location = (item.dataset.roleLocation ?? '').toLowerCase();
+        const matchesQuery =
+          !query || title.includes(query) || departmentName.includes(query) || location.includes(query);
+        const matchesDepartment = department === 'all' || departmentName === department;
+        return matchesQuery && matchesDepartment;
+      });
+
+      const sorted = [...filtered].sort((first, second) => {
+        const firstDate = new Date(first.dataset.rolePosted ?? 0).getTime();
+        const secondDate = new Date(second.dataset.rolePosted ?? 0).getTime();
+
+        if (sortValue === 'title') {
+          return (first.dataset.roleTitle ?? '').localeCompare(second.dataset.roleTitle ?? '');
+        }
+
+        if (sortValue === 'department') {
+          const departmentCompare = (first.dataset.roleDepartment ?? '').localeCompare(
+            second.dataset.roleDepartment ?? '',
+          );
+          return departmentCompare || (first.dataset.roleTitle ?? '').localeCompare(second.dataset.roleTitle ?? '');
+        }
+
+        return secondDate - firstDate;
+      });
+
+      roleItems.forEach((item) => {
+        item.style.display = 'none';
+      });
+
+      sorted.forEach((item) => {
+        roleList?.appendChild(item);
+        item.style.display = '';
+      });
+
+      if (emptyState) {
+        if (roleItems.length === 0) {
+          emptyState.classList.remove('hidden');
+          return;
+        }
+        emptyState.classList.toggle('hidden', sorted.length > 0);
+      }
+    };
+
+    searchInput?.addEventListener('input', applyFilters);
+    departmentFilter?.addEventListener('change', applyFilters);
+    sortSelect?.addEventListener('change', applyFilters);
+    applyFilters();
+  </script>
+</Layout>

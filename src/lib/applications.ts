@@ -10,13 +10,16 @@ import type { Database } from './db';
 import { applications } from '../../db/schema';
 
 export const applicationSchema = z.object({
-    jobId: z.string().min(1, 'A job is required.'),
-    name: z.string().min(1, 'Your name is required.').max(200),
-    email: z.email('Enter a valid email address.').max(320),
-    summary: z.string().max(2000).optional(),
-    careerSummary: z.string().max(2000).optional(),
-    note: z.string().max(2000).optional(),
-    links: z.string().max(500).optional(),
+    jobId: z.string().trim().min(1, 'A job is required.'),
+    name: z.string().trim().min(1, 'Your name is required.').max(200),
+    email: z.preprocess(
+        (value) => (typeof value === 'string' ? value.trim() : value),
+        z.email('Enter a valid email address.').max(320),
+    ),
+    summary: z.string().trim().max(2000).optional(),
+    careerSummary: z.string().trim().max(2000).optional(),
+    note: z.string().trim().max(2000).optional(),
+    links: z.string().trim().max(500).optional(),
 }).transform((data) => ({
     ...data,
     careerSummary: data.careerSummary ?? data.summary ?? undefined,
