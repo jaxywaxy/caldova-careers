@@ -1,0 +1,1 @@
+ALTER TABLE `applications` ADD `career_summary` text;

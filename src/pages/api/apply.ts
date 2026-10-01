@@ -15,6 +15,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         jobId: form.get('jobId')?.toString() ?? '',
         name: form.get('name')?.toString() ?? '',
         email: form.get('email')?.toString() ?? '',
+        careerSummary: form.get('careerSummary')?.toString() || form.get('summary')?.toString() || undefined,
         note: form.get('note')?.toString() || undefined,
         links: form.get('links')?.toString() || undefined,
     });

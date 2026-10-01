@@ -18,6 +18,7 @@ export const applications = sqliteTable('applications', {
     name: text('name').notNull(),
     email: text('email').notNull(),
     // Optional free-form fields the candidate can share.
+    careerSummary: text('career_summary'),
     note: text('note'),
     links: text('links'),
     submittedAt: text('submitted_at')

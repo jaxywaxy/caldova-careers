@@ -16,6 +16,7 @@ describe('createApplication (integration)', () => {
             jobId: 'senior-frontend-engineer',
             name: 'Alex Doe',
             email: 'alex@example.com',
+            careerSummary: 'Product-minded engineer with experience in healthcare products.',
             note: 'Portfolio attached.',
             links: 'https://example.com',
         });
@@ -26,6 +27,7 @@ describe('createApplication (integration)', () => {
         expect(rows[0].jobId).toBe('senior-frontend-engineer');
         expect(rows[0].name).toBe('Alex Doe');
         expect(rows[0].email).toBe('alex@example.com');
+        expect(rows[0].careerSummary).toBe('Product-minded engineer with experience in healthcare products.');
         expect(rows[0].note).toBe('Portfolio attached.');
         expect(rows[0].submittedAt).toBeTruthy();
     });
@@ -35,9 +37,11 @@ describe('createApplication (integration)', () => {
             jobId: 'data-platform-engineer',
             name: 'Sam Lee',
             email: 'sam@example.com',
+            careerSummary: '   ',
             note: '   ',
         });
         const rows = await db.select().from(applications);
+        expect(rows[0].careerSummary).toBeNull();
         expect(rows[0].note).toBeNull();
         expect(rows[0].links).toBeNull();
     });
