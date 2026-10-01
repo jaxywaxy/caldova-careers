@@ -8,6 +8,7 @@ test.describe('Apply flow', () => {
         await expect(page.getByTestId('apply-form')).toBeVisible();
         await page.getByTestId('apply-name').fill('Alex Doe');
         await page.getByTestId('apply-email').fill('alex@example.com');
+        await page.getByTestId('apply-career-summary').fill('Product-minded engineer with a background in healthcare analytics.');
         await page.getByTestId('apply-note').fill('Excited to help build accessible tools.');
         await page.getByTestId('apply-links').fill('https://example.com/portfolio');
         await page.getByTestId('apply-submit').click();

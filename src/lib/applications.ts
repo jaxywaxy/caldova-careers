@@ -13,11 +13,16 @@ export const applicationSchema = z.object({
     jobId: z.string().min(1, 'A job is required.'),
     name: z.string().min(1, 'Your name is required.').max(200),
     email: z.email('Enter a valid email address.').max(320),
+    summary: z.string().max(2000).optional(),
+    careerSummary: z.string().max(2000).optional(),
     note: z.string().max(2000).optional(),
     links: z.string().max(500).optional(),
-});
+}).transform((data) => ({
+    ...data,
+    careerSummary: data.careerSummary ?? data.summary ?? undefined,
+}));
 
-export type ApplicationInput = z.infer<typeof applicationSchema>;
+export type ApplicationInput = z.output<typeof applicationSchema>;
 
 /**
  * Validate and insert an application. Returns the new row id.
@@ -34,6 +39,7 @@ export async function createApplication(db: Database, input: unknown): Promise<n
             jobId: data.jobId,
             name: data.name.trim(),
             email: data.email.trim(),
+            careerSummary: data.careerSummary?.trim() ? data.careerSummary.trim() : null,
             note: data.note?.trim() ? data.note.trim() : null,
             links: data.links?.trim() ? data.links.trim() : null,
         })

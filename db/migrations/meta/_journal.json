@@ -8,6 +8,13 @@
       "when": 1785185088835,
       "tag": "0000_romantic_loners",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790802641686,
+      "tag": "0001_add_career_summary",
+      "breakpoints": true
     }
   ]
 }

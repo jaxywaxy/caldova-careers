@@ -12,10 +12,25 @@ describe('applicationSchema', () => {
     it('accepts an optional note and links', () => {
         const result = applicationSchema.safeParse({
             ...base,
+            careerSummary: 'Built analytics products across healthcare and biotech teams.',
             note: 'Excited about accessible UI work.',
             links: 'https://example.com/portfolio',
         });
         expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.careerSummary).toBe('Built analytics products across healthcare and biotech teams.');
+        }
+    });
+
+    it('accepts a summary alias for compatibility', () => {
+        const result = applicationSchema.safeParse({
+            ...base,
+            summary: 'Product-minded engineer with a background in clinical software.',
+        });
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.careerSummary).toBe('Product-minded engineer with a background in clinical software.');
+        }
     });
 
     it('rejects a missing jobId', () => {
@@ -44,6 +59,14 @@ describe('applicationSchema', () => {
         const result = applicationSchema.safeParse({
             ...base,
             note: 'x'.repeat(2001),
+        });
+        expect(result.success).toBe(false);
+    });
+
+    it('rejects an overly long career summary', () => {
+        const result = applicationSchema.safeParse({
+            ...base,
+            careerSummary: 'x'.repeat(2001),
         });
         expect(result.success).toBe(false);
     });
